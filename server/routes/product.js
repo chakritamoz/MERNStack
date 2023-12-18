@@ -4,8 +4,11 @@ const router = express.Router();
 // controllers
 const { list, read, create, update, remove } = require('../controllers/product');
 
+// middleware
+const { auth } = require('../middleware/auth');
+
 // http://localhost:8080/api/product
-router.get('/product', list);
+router.get('/product', auth, list);
 
 // http://localhost:8080/api/product/id
 router.get('/product/:id', read);
