@@ -1,3 +1,4 @@
+const fs = require('fs');
 const Product = require('../models/product');
 
 exports.list = async (req, res) => {
@@ -23,7 +24,10 @@ exports.read = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const product = await Product(req.body).save();
+    const data = req.body;
+    if (req.file) data.file = req.file.filename;
+
+    const product = await Product(data).save();
     res.send(product);
   } catch (err) {
     console.log(err);
@@ -34,9 +38,21 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const id = req.params.id;
+    const data = req.body;
+    data.oldFile = data.file;
+
+    if (req.file) {
+      data.file = req.file.filename;
+
+      await fs.unlink('./uploads/' + data.oldFile, (err) => {
+        if (err) throw err;
+        console.log('remove file success');
+      });
+    };
+
     const product = await Product.findOneAndUpdate(
       { _id: id },
-      req.body,
+      data,
       { new: true }
     );
     res.send(product);
@@ -50,6 +66,14 @@ exports.remove = async (req, res) => {
   try {
     const id = req.params.id;
     const product = await Product.findOneAndDelete({ _id: id });
+
+    if (product.file) {
+      await fs.unlink('./uploads/' + product.file, (err) => {
+        if (err) console.log(err);
+        console.log('remove file success');
+      });
+    }
+
     res.send(product);
   } catch (err) {
     console.log(err);
