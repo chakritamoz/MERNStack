@@ -25,6 +25,7 @@ exports.read = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const data = req.body;
+    console.log(req);
     if (req.file) data.file = req.file.filename;
 
     const product = await Product(data).save();
@@ -39,7 +40,6 @@ exports.update = async (req, res) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    data.oldFile = data.file;
 
     if (req.file) {
       data.file = req.file.filename;
