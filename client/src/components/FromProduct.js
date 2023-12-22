@@ -19,17 +19,30 @@ const FromProduct = () => {
   }
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    })
+    if (e.target.name === 'file') {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.files[0]
+      })
+    } else {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value
+      })
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    create(form)
+    const formWithImage = new FormData();
+    
+    for (const key in form) { 
+      formWithImage.append(key, form[key]);
+    }
+    
+    create(formWithImage)
       .then((res) => {
+        console.log(res.data)
         loadProducts();
       })
       .catch((err) => console.log(err));
@@ -48,7 +61,7 @@ const FromProduct = () => {
 
   return (
     <>
-      <form onSubmit={ handleSubmit }>
+      <form onSubmit={ handleSubmit } encType='multipart/form-data'>
         <label htmlFor='name'>Name</label> <br/>
         <input type='text'
           id='name'
@@ -63,7 +76,14 @@ const FromProduct = () => {
           name='description'
           onChange={e => handleChange(e)}
           placeholder='description'
-        /> <br />
+        /> <br/>
+
+        <label htmlFor='file'>Image</label> <br/>
+        <input type='file'
+          id='file'
+          name='file'
+          onChange={(e) => handleChange(e)}
+        /> <br/>
 
         <label htmlFor='price'>Price</label> <br/>
         <input type='number'
@@ -82,6 +102,7 @@ const FromProduct = () => {
             <th>#</th>
             <th>Name</th>
             <th>Description</th>
+            <th>Image</th>
             <th>Price</th>
             <th>Actions</th>
           </tr>
@@ -93,6 +114,7 @@ const FromProduct = () => {
                 <td>{ idx + 1 }</td>
                 <td>{ item.name }</td>
                 <td>{ item.description }</td>
+                <td>{ item.file }</td>
                 <td>{ item.price }</td>
                 <td>
                   <Link to={ '/edit/' + item._id }>

@@ -6,6 +6,7 @@ import { readData, update } from '../functions/product';
 
 const FromEditProduct = () => {
   const [product, setProduct] = useState({});
+  const [oldFile, setOldFile] = useState();
 
   const params = useParams();
   const navigate = useNavigate();
@@ -17,22 +18,36 @@ const FromEditProduct = () => {
   const loadProduct = async (id) => {
     readData(id)
       .then((res) => {
-        setProduct(res.data)
+        setProduct(res.data);
+        setOldFile(res.data.file);
       })
       .catch((err) => console.log(err));
   }
 
   const handleChange = (e) => {
-    setProduct({
-      ...product,
-      [e.target.name]: e.target.value
-    });
+    if (e.target.name === 'file') {
+      setProduct({
+        ...product,
+        [e.target.name]: e.target.files[0]
+      })
+    } else {
+      setProduct({
+        ...product,
+        [e.target.name]: e.target.value
+      });
+    }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const formWithImage = new FormData();
 
-    update(params.id, product)
+    for (const key in product) {
+      formWithImage.append(key, product[key]);
+    }
+    formWithImage.append('oldFile', oldFile);
+
+    update(params.id, formWithImage)
       .then((res) => {
         navigate('/');
       })
@@ -42,7 +57,7 @@ const FromEditProduct = () => {
   return (
     <div>
       <h1>Edit Product</h1>
-      <form onSubmit={ handleSubmit }>
+      <form onSubmit={ handleSubmit } encType='multipart/form-data'>
         <label htmlFor='name'>Name</label> <br/>
         <input type='text'
           id='name'
@@ -61,6 +76,13 @@ const FromEditProduct = () => {
           value={ product.description }
         /> <br/>
 
+        <label htmlFor='file'>Image</label> <br/>
+        <input type='file'
+          id='file'
+          name='file'
+          onChange={(e) => handleChange(e)}
+        /> <br/>
+
         <label htmlFor='price'>Price</label> <br/>
         <input type='Number'
           id='price'
@@ -70,7 +92,7 @@ const FromEditProduct = () => {
           value={ product.price }
         /> <br/>
 
-        <button>Submit</button>
+        <input type='submit' value="submit" />
       </form>
     </div>
   )
